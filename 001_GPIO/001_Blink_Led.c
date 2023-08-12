@@ -16,7 +16,8 @@
  *  |        PA.2| ----> | LED D3 Pin 11
  *  |        PA.3| ----> | LED D4 Pin 10
  *  |            |       |
- *  |        +5V | <---> | +5V
+ *  |      +3.3V | <---> | +3.3V
+ *  |        GND | <---> |GND 
  *
  *\authors ScuratovaAnna, PivnevNikolay
  *\ сode debugging PivnevNikolay
@@ -155,13 +156,23 @@ void SYS_Init(void) {
 //************************************************************************
 void LED_GPIO_init(void) {
   PA->MODE = (PA->MODE & ~(GPIO_MODE_MODE0_Msk)) | (GPIO_MODE_OUTPUT << GPIO_MODE_MODE0_Pos);
+/*-----------------------------------------------------------------------*/
+/* обнуляем значения регистра MODE0 --> MODE0_0 =0 MODE0_1 = 0           */
+/* PA->MODE &= ~((0x1UL << 1)|(0x1UL << 0));                             */
+/* устанавливаем значение MODE0 = 01 (Push-pull Output mode)             */
+/* PA->MODE |=  (0x1UL << 0);                                            */
+/*-----------------------------------------------------------------------*/
   PA->MODE = (PA->MODE & ~(GPIO_MODE_MODE1_Msk)) | (GPIO_MODE_OUTPUT << GPIO_MODE_MODE1_Pos);
   PA->MODE = (PA->MODE & ~(GPIO_MODE_MODE2_Msk)) | (GPIO_MODE_OUTPUT << GPIO_MODE_MODE2_Pos);
   PA->MODE = (PA->MODE & ~(GPIO_MODE_MODE3_Msk)) | (GPIO_MODE_OUTPUT << GPIO_MODE_MODE3_Pos);
   PA0 = 1;
+//PA->DOUT |=  (0x1UL << 0);
   PA1 = 1;
+//PA->DOUT |=  (0x1UL << 1);
   PA2 = 1;
+//PA->DOUT |=  (0x1UL << 2);
   PA3 = 1;
+//PA->DOUT |=  (0x1UL << 3);
 }
 /*----------------------------------------------------------------------*/
 /* Init UART0                                                           */
