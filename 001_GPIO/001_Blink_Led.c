@@ -16,7 +16,7 @@
  *  |        PA.2| ----> | LED D3 Pin 11
  *  |        PA.3| ----> | LED D4 Pin 10
  *  |            |       |
- *  |      +3.3V | <---> | +3.3V
+ *  |      +3.3V | <---> | +5V
  *  |        GND | <---> |GND 
  *
  *\authors ScuratovaAnna, PivnevNikolay
