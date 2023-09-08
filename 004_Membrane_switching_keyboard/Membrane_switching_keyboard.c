@@ -1,4 +1,37 @@
-
+/**-----------------------------------------------------------------------
+ *\date  08.09.2023
+ *\brief
+ *
+ * ** Membrane switching keyboard (Матричная клавиатура). **
+ * ** Код написан в IDE SEGGER Embedded Studio for ARM    **
+ *
+ *     M031EC1AE          Membrane switching keyboard
+ *   ------------         ---------------------------
+ *  |            |       |
+ *  |            |       |
+ *  |            |       |
+ *  |  input PA.0| <---- | A0
+ *  |  input PA.1| <---- | A1
+ *  |  input PA.2| <---- | A2
+ *  |  input PA.3| <---- | A3
+ *  |            |       |
+ *  | output PB.0| ----> | B0
+ *  | output PB.1| ----> | B1
+ *  | output PB.2| ----> | B2
+ *  | output PB.3| ----> | B3
+ *  |            |       |
+ *  |      +3.3V | <---> | +3.3V
+ *  |            |       |
+ *
+ *\ authors ScuratovaAnna, PivnevNikolay
+ *\ сode debugging PivnevNikolay
+ *
+ * Идея и примеры взяты отсюда:
+ * https://3d-diy.ru/wiki/arduino-moduli/elastichnaya-matrichnaya-klaviatura-4x4/
+ * 
+ *************************************************************************
+ *\brief
+ */
 
 #include "NuMicro.h"
 #include "stdbool.h"
@@ -6,7 +39,7 @@
 
 typedef uint32_t u32;
 typedef uint16_t u16;
-typedef uint8_t u8;
+typedef uint8_t  u8;
 
 #define ALONE
 
@@ -53,7 +86,8 @@ void GPIO_init(void) {
     GPIO_SetMode(PA, Port_Bit[i], GPIO_MODE_INPUT);  // PA.0-3 input
     PB->DOUT |= (0x1UL << i);
   }
-
+  GPIO_SET_DEBOUNCE_TIME(GPIO_DBCTL_DBCLKSRC_LIRC, GPIO_DBCTL_DBCLKSEL_512);
+  GPIO_ENABLE_DEBOUNCE(PA, BIT0 | BIT1 | BIT2 | BIT3);
   UART_Open(UART0, 115200);
 }
 
