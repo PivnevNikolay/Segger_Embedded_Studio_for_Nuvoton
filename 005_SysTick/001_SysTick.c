@@ -17,8 +17,8 @@
  *  |      +3.3V | <---> | +5V
  *  |        GND | <---> |GND 
  *
- *\authors ScuratovaAnna, PivnevNikolay
- *\ сode debugging PivnevNikolay
+ *\authors        ScuratovaAnna, PivnevNikolay.
+ *\сode debugging PivnevNikolay, ScuratovaAnna.
  *
  *
  *****************  SysTick — Системный таймер  *************************
@@ -28,6 +28,10 @@
  * https://microcontrollerslab.com/systick-timer-tm4c123g-arm-cortex-m4-microcontroller/
  * Пример реализован с применением ARDUINO MULTI-FUNCTION SHIELD
  * http://publicatorbar.ru/2017/12/21/arduino-multi-function-shield/
+ *
+ *
+ * NuTool-PinConfigure   (Web application) --> https://opennuvoton.github.io/NuTool-PinConfigure/
+ * NuTool-ClockConfigure (Web application) --> https://opennuvoton.github.io/NuTool-ClockConfigure/
  ************************************************************************
  *\brief
  */
@@ -40,47 +44,57 @@
 
 __IO bool i = 0;
 
-#define SYSCLOCK 48000000U // макрос нашей системной частоты
+#define SYSCLOCK 24000000U // макрос нашей системной частоты
 
 //    #define     __IO    volatile             /*!< Defines 'read / write' permissions */
-__IO uint32_t SysTick_CNT = 0; //обьявляем и иницализируем в 0 значение нашего счетчика SysTick
+__IO uint32_t SysTick_CNT = 0; // обьявляем и иницализируем в 0 значение нашего счетчика SysTick
 
-void SysTick_Init(void)
-{
-  SysTick->LOAD &= ~SysTick_LOAD_RELOAD_Msk; //сбрасываем возможные старые значения интервала счета в 0
-  SysTick->LOAD = SYSCLOCK/1000 - 1;
-  SysTick->VAL &= ~SysTick_VAL_CURRENT_Msk; //сбрасываем текущие значения счетчика в 0
-  SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;//запуск счетчика
+void SysTick_Init(void) {
+  SysTick->LOAD &= ~SysTick_LOAD_RELOAD_Msk; // сбрасываем возможные старые значения интервала счета в 0
+  SysTick->LOAD = SYSCLOCK / 1000 - 1;
+  SysTick->VAL &= ~SysTick_VAL_CURRENT_Msk;                                                         // сбрасываем текущие значения счетчика в 0
+  SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk; // запуск счетчика
 }
 
-void SysTick_Handler(void)
-{
-  if(SysTick_CNT > 0)  SysTick_CNT--;
+void SysTick_Handler(void) {
+  if (SysTick_CNT > 0)
+    SysTick_CNT--;
 }
 
-void delay_mS(uint32_t mS)
-{
-  SysTick->VAL &= ~SysTick_VAL_CURRENT_Msk;//сбрасываем старые возможные значения текущего счета в 0
+void DElay_mS(uint32_t mS) {
+  SysTick->VAL &= ~SysTick_VAL_CURRENT_Msk; // сбрасываем старые возможные значения текущего счета в 0
   SysTick->VAL = SYSCLOCK / 1000 - 1;
   SysTick_CNT = mS;
-  while(SysTick_CNT) {}// как только будет 0, то выходим из цикла и задержка заканчивается
+  while (SysTick_CNT) {
+  } // как только будет 0, то выходим из цикла и задержка заканчивается
 }
 
-
-//************************************************************************
 void SYS_Init(void) {
-  SYS_UnlockReg();
+  //***************************************************************//
+  //SYS_UnlockReg();
+  //MCU:M031EC1AE(TSSOP28)
+  //Base Clocks:
+  //HIRC:48MHz
+  //HCLK:48MHz
+  //PCLK0:48MHz
+  //PCLK1:48MHz
+  //Enabled-Module Frequencies:
+  //SYSTICK=Bus Clock(HCLK):48MHz/Engine Clock:24MHz
+  //***************************************************************//
   //********* Enable HIRC clock (Internal RC 48MHz)  **************//
   // Enable HIRC clock (Internal RC 48MHz)
   CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
   CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
   CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
+  CLK->PCLKDIV = (CLK_PCLKDIV_APB0DIV_DIV1 | CLK_PCLKDIV_APB1DIV_DIV1);
   //********* UART0_MODULE  ***************************************//
   CLK_EnableModuleClock(UART0_MODULE);
   CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HIRC, CLK_CLKDIV0_UART0(1));
   //********* TMR0_MODULE  ****************************************//
-  CLK_EnableModuleClock(TMR0_MODULE);
-  CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_HIRC, 0);
+  // CLK_EnableModuleClock(TMR0_MODULE);
+  // CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_HIRC, 0);
+
+  CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HCLK_DIV2, 0);
 
   SystemCoreClockUpdate();
   //********* GPIO PA.0 PA.1 PA.2 PA.3 ****************************//
@@ -95,7 +109,7 @@ void SYS_Init(void) {
 
   SYS_LockReg();
 }
-//************************************************************************
+  //***************************************************************//
 void LED_GPIO_init(void) {
   GPIO_SetMode(PA, BIT0, GPIO_MODE_OUTPUT);
   GPIO_SetMode(PA, BIT1, GPIO_MODE_OUTPUT);
@@ -109,12 +123,12 @@ void LED_GPIO_init(void) {
 /*----------------------------------------------------------------------*/
 /* Init UART0                                                           */
 /*----------------------------------------------------------------------*/
-//************************************************************************
-void UART0_Init(void){
+  //***************************************************************//
+void UART0_Init(void) {
   SYS_ResetModule(UART0_RST);
   UART_Open(UART0, 115200);
 }
-//************************************************************************
+  //***************************************************************//
 int main(void) {
   SYS_Init();
   LED_GPIO_init();
@@ -126,7 +140,8 @@ int main(void) {
     PA1 = i;
     PA2 = i;
     PA3 = i;
-    delay_mS(500);
+    DElay_mS(100); // 10Hz
+    // delay_mS(1000);//1Hz
   }
 }
-/****************************** End of file *****************************/
+  /*************************** End of file *************************/
