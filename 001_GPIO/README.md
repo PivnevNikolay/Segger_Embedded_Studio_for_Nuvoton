@@ -41,7 +41,7 @@ R: read only, W: write only, R/W: both read and write
 
 Карта регистров идентична для остальных портов микроконтроллера *(PB, PC, PD, PE, PF, PG и PH)*.  
 ***
-###  Mode Control
+### Mode Control
 Port A-H I/O Mode Control (Px_MODE)  
  | Register|    Offset   |R/W|    Description    | Reset Value |
  |---------|-------------|---|-------------------|-------------|
