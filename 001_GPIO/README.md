@@ -2,7 +2,8 @@
 * [Основные возможности портов ввода вывода](#Основные-возможности-портов-ввода-вывода)
 * [Register Map Port A](#Register-Map-Port-A)
 * [Mode Control](#Mode-Control)
-* [Digital Input Path Disable Control](#Digital-Input-Path-Disable-Control) 
+* [Digital Input Path Disable Control](#Digital-Input-Path-Disable-Control)
+* [Data Output Value](#Data-Output-Value) 
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -116,5 +117,41 @@ Port A-H I/O Mode Control (Px_MODE)
 
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
-***
+***  
+### Data Output Value  
+Port A-H Data Output Value (Px_DOUT)  
+|Register | Offset      |R/W |Description                           | Reset Value|
+|:-------:|:-----------:|:--:|:-------------------------------------|:----------:|
+|PA_DOUT  |GPIO_BA+0x008|R/W | PA Data Output Value                 | 0x0000_FFFF|
+|PB_DOUT  |GPIO_BA+0x048|R/W | PB Data Output Value                 | 0x0000_FFFF|
+|PC_DOUT  |GPIO_BA+0x088|R/W | PC Data Output Value                 | 0x0000_7FFF|
+|PD_DOUT  |GPIO_BA+0x0C8|R/W | PD Data Output Value                 | 0x0000_FFFF|
+|PE_DOUT  |GPIO_BA+0x108|R/W | PE Data Output Value                 | 0x0000_FFFF|
+|PF_DOUT  |GPIO_BA+0x148|R/W | PF Data Output Value                 | 0x0000_CFFF|
+|PG_DOUT  |GPIO_BA+0x188|R/W | PG Data Output Value                 | 0x0000_FE1C|
+|PH_DOUT  |GPIO_BA+0x1C8|R/W | PH Data Output Value                 | 0x0000_0FF0|  
+
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+| DOUT | DOUT | DOUT | DOUT | DOUT | DOUT | DOUT | DOUT |
+|7     |6     |5     |4     |3     |2      |1    |0     |
+| DOUT | DOUT | DOUT | DOUT | DOUT | DOUT | DOUT | DOUT |  
+
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[31:16]  |Reserved    |Reserved                                                                                     |
+|         |            |**Port A-H Pin[n] Output Value**                                                             |
+|         |            |Each of these bits controls the status of a Px.n pin when the Px.n is configured as          |
+|         |            |Pushpull output, Open-drain output or Quasi-bidirectional mode.                              |
+|[n]      | DOUT[n]    |*0* = Px.n will drive Low if the Px.n pin is configured as Push-pull output, Open-drain      |
+|n=0,1..15|            |output or Quasi-bidirectional mode.                                                          |
+|         |            |*1* = Px.n will drive High if the Px.n pin is configured as Push-pull output or              |  
+|         |            |Quasibidirectional mode.
+
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
 
