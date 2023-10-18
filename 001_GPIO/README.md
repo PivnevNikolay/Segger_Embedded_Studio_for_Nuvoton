@@ -1,7 +1,8 @@
 * [Обзор](#Обзор)
 * [Основные возможности портов ввода вывода](#Основные-возможности-портов-ввода-вывода)
 * [Register Map Port A](#Register-Map-Port-A)
-* [Mode Control](#Mode-Control)  
+* [Mode Control](#Mode-Control)
+* [Digital Input Path Disable Control](#Digital-Input-Path-Disable-Control) 
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -79,4 +80,41 @@ Port A-H I/O Mode Control (Px_MODE)
  powered on.*  
  **Note2:**  
  *The PC.8-13,15/PD.4-14/PF.7-13 pin is ignored.*
- ***
+ ***  
+ ### Digital Input Path Disable Control  
+ Port A-H Digital Input Path Disable Control (Px_DINOFF)  
+| Register|Offset        |R/W|Description                           |Reset Value |
+|---------|-------------|----|--------------------------------------|------------|
+|PA_DINOFF|GPIO_BA+0x004 |R/W| PA Digital Input Path Disable Control| 0x0000_0000|
+|PB_DINOFF|GPIO_BA+0x044 |R/W| PB Digital Input Path Disable Control| 0x0000_0000|
+|PC_DINOFF|GPIO_BA+0x084 |R/W| PC Digital Input Path Disable Control| 0x0000_0000|
+|PD_DINOFF|GPIO_BA+0x0C4 |R/W| PD Digital Input Path Disable Control| 0x0000_0000|
+|PE_DINOFF|GPIO_BA+0x104 |R/W| PE Digital Input Path Disable Control| 0x0000_0000|
+|PF_DINOFF|GPIO_BA+0x144 |R/W| PF Digital Input Path Disable Control| 0x0000_0000|
+|PG_DINOFF|GPIO_BA+0x184 |R/W| PG Digital Input Path Disable Control| 0x0000_0000|
+|PH_DINOFF|GPIO_BA+0x1C4 |R/W| PH Digital Input Path Disable Control| 0x0000_0000|  
+
+|31    |30    |29    |28    |27    |26    |25    | 24   |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|DINOFF|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|7     |6     |5     |4     |3     |2      |1    |0     |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|  
+
+|Bits    |Description |Description|
+|:------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[n+16]  | DINOFF[n]  |Port A-H Pin[n] Digital Input Path Disable Bit|                                              |
+|n=0,1..15|            |Each of these bits is used to control if the digital input path of corresponding Px.n pin is |
+|        |            |disabled. If input is analog signal, users can disable Px.n digital input path to avoid input|
+|        |            |current leakage.                                                                             |
+|        |            |*0* = Px.n digital input path Enabled.                                                       |
+|        |            |*1* = Px.n digital input path Disabled (digital input tied to low).                          |
+|[15:0]  |Reserved    |Reserved                                                                                     |  
+
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+***
+
