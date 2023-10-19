@@ -167,4 +167,33 @@ Port A-H Data Output Write Mask (Px_DATMSK)
 |PE_DATMSK|GPIO_BA+0x10C| R/W| PE Data Output Write Mask            | 0x0000_0000|
 |PF_DATMSK|GPIO_BA+0x14C| R/W| PF Data Output Write Mask            | 0x0000_0000|
 |PG_DATMSK|GPIO_BA+0x18C| R/W| PG Data Output Write Mask            | 0x0000_0000|
-|PH_DATMSK|GPIO_BA+0x1CC| R/W| PH Data Output Write Mask            | 0x0000_0000|
+|PH_DATMSK|GPIO_BA+0x1CC| R/W| PH Data Output Write Mask            | 0x0000_0000|  
+
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|
+|7     |6     |5     |4     |3     |2      |1    |0     |
+|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|DATMSK|  
+
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[31:16]  |Reserved    |Reserved                                                                                     |
+|         |            |**Port A-H Pin[n] Data Output Write Mask**                                                   |
+|         |            |These bits are used to protect the corresponding DOUT (Px_DOUT[n]) bit. When the             |
+|         |            |DATMSK (Px_DATMSK[n]) bit is set to 1, the corresponding DOUT (Px_DOUT[n]) bit is            |
+|         |            |protected. If the write signal is masked, writing data to the protect bit is ignored.        |
+|[n]      | DATMSK[n]  |*0* = Corresponding DOUT (Px_DOUT[n]) bit can be updated.                                    |
+|n=0,1..15|            |*1* = Corresponding DOUT (Px_DOUT[n]) bit protected.                                         |  
+
+**Note1:**  
+*This function only protects the corresponding DOUT (Px_DOUT[n]) bit, and will*  
+*not protect the corresponding PDIO (Pxn_PDIO[0]) bit.*  
+**Note2:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+
+
+
