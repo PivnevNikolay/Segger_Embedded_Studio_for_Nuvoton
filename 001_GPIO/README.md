@@ -3,7 +3,8 @@
 * [Register Map Port A](#Register-Map-Port-A)
 * [Mode Control](#Mode-Control)
 * [Digital Input Path Disable Control](#Digital-Input-Path-Disable-Control)
-* [Data Output Value](#Data-Output-Value) 
+* [Data Output Value](#Data-Output-Value)
+* [Data Output Write Mask](#Data-Output-Write-Mask)
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -154,4 +155,16 @@ Port A-H Data Output Value (Px_DOUT)
 
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
-
+***  
+### Data Output Write Mask  
+Port A-H Data Output Write Mask (Px_DATMSK)  
+|Register | Offset      |R/W |Description                           | Reset Value|
+|:-------:|:-----------:|:--:|:-------------------------------------|:----------:|
+|PA_DATMSK|GPIO_BA+0x00C| R/W| PA Data Output Write Mask            | 0x0000_0000|
+|PB_DATMSK|GPIO_BA+0x04C| R/W| PB Data Output Write Mask            | 0x0000_0000|
+|PC_DATMSK|GPIO_BA+0x08C| R/W| PC Data Output Write Mask            | 0x0000_0000|
+|PD_DATMSK|GPIO_BA+0x0CC| R/W| PD Data Output Write Mask            | 0x0000_0000|
+|PE_DATMSK|GPIO_BA+0x10C| R/W| PE Data Output Write Mask            | 0x0000_0000|
+|PF_DATMSK|GPIO_BA+0x14C| R/W| PF Data Output Write Mask            | 0x0000_0000|
+|PG_DATMSK|GPIO_BA+0x18C| R/W| PG Data Output Write Mask            | 0x0000_0000|
+|PH_DATMSK|GPIO_BA+0x1CC| R/W| PH Data Output Write Mask            | 0x0000_0000|
