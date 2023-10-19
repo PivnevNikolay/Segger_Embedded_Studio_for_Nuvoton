@@ -5,6 +5,7 @@
 * [Digital Input Path Disable Control](#Digital-Input-Path-Disable-Control)
 * [Data Output Value](#Data-Output-Value)
 * [Data Output Write Mask](#Data-Output-Write-Mask)
+* [Pin Value](#Pin-Value)  
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -194,6 +195,43 @@ Port A-H Data Output Write Mask (Px_DATMSK)
 *not protect the corresponding PDIO (Pxn_PDIO[0]) bit.*  
 **Note2:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+***  
+### Pin Value  
+Port A-H Pin Value (Px_PIN)  
+|Register | Offset      |R/W |Description                           | Reset Value|
+|:-------:|:-----------:|:--:|:-------------------------------------|:----------:|
+| PA_PIN  |GPIO_BA+0x010| R  | PA Pin Value                         | 0x0000_XXXX|
+| PB_PIN  |GPIO_BA+0x050| R  | PB Pin Value                         | 0x0000_XXXX|
+| PC_PIN  |GPIO_BA+0x090| R  | PC Pin Value                         | 0x0000_XXXX|
+| PD_PIN  |GPIO_BA+0x0D0| R  | PD Pin Value                         | 0x0000_XXXX|
+| PE_PIN  |GPIO_BA+0x110| R  | PE Pin Value                         | 0x0000_XXXX|
+| PF_PIN  |GPIO_BA+0x150| R  | PF Pin Value                         | 0x0000_XXXX|
+| PG_PIN  |GPIO_BA+0x190| R  | PG Pin Value                         | 0x0000_XXXX|
+| PH_PIN  |GPIO_BA+0x1D0| R  | PH Pin Value                         | 0x0000_XXXX|  
+
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+| PIN  | PIN  | PIN  | PIN  | PIN  | PIN  | PIN  | PIN  |
+|7     |6     |5     |4     |3     |2      |1    |0     |
+| PIN  | PIN  | PIN  | PIN  | PIN  | PIN  | PIN  | PIN  |  
+
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[31:16]  |Reserved    |Reserved                                                                                     |
+|         |            |**Port A-H Pin[n] Pin Value**                                                                |
+|[n]      | PIN[n]     |Each bit of the register reflects the actual status of the respective Px.n pin.              |
+|n=0,1..15|            |If the bit is 1, it indicates the corresponding pin status is high.                          |
+|         |            |Else the pin status is low.                                                                  |
+
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+*** 
+
+
 
 
 
