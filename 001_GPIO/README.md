@@ -5,7 +5,8 @@
 * [Digital Input Path Disable Control](#Digital-Input-Path-Disable-Control)
 * [Data Output Value](#Data-Output-Value)
 * [Data Output Write Mask](#Data-Output-Write-Mask)
-* [Pin Value](#Pin-Value)  
+* [Pin Value](#Pin-Value)
+* [De-bounce Enable Control Register](#De-bounce-Enable-Control-Register)
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -229,9 +230,47 @@ Port A-H Pin Value (Px_PIN)
 
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
-*** 
+***     
+### De-bounce Enable Control Register  
+Port A-H De-bounce Enable Control Register (Px_DBEN)  
+|Register | Offset        |R/W  |Description                           | Reset Value|
+|:-------:|:-------------:|:---:|:-------------------------------------|:---------:|
+| PA_DBEN | GPIO_BA+0x014 | R/W | PA De-bounce Enable Control Register |0x0000_0000|
+| PB_DBEN | GPIO_BA+0x054 | R/W | PB De-bounce Enable Control Register |0x0000_0000|
+| PC_DBEN | GPIO_BA+0x094 | R/W | PC De-bounce Enable Control Register |0x0000_0000|
+| PD_DBEN | GPIO_BA+0x0D4 | R/W | PD De-bounce Enable Control Register |0x0000_0000|
+| PE_DBEN | GPIO_BA+0x114 | R/W | PE De-bounce Enable Control Register |0x0000_0000|
+| PF_DBEN | GPIO_BA+0x154 | R/W | PF De-bounce Enable Control Register |0x0000_0000|
+| PG_DBEN | GPIO_BA+0x194 | R/W | PG De-bounce Enable Control Register |0x0000_0000|
+| PH_DBEN | GPIO_BA+0x1D4 | R/W | PH De-bounce Enable Control Register |0x0000_0000|  
 
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+| DBEN | DBEN | DBEN | DBEN | DBEN | DBEN | DBEN | DBEN |
+|7     |6     |5     |4     |3     |2      |1    |0     |
+| DBEN | DBEN | DBEN | DBEN | DBEN | DBEN | DBEN | DBEN |  
 
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[31:16]  |Reserved    |Reserved                                                                                     |
+|         |            |**Port A-H Pin[n] Input Signal De-bounce Enable Bit**                                        |
+|         |            |The DBEN[n] bit is used to enable the de-bounce function for each corresponding bit.         |
+|         |            |If the input signal pulse width cannot be sampled by continuous two de-bounce sample         |
+|         |            |cycle, the input signal transition is seen as the signal bounce and will not trigger the     |
+|         |            |interrupt. The de-bounce clock source is controlled by DBCLKSRC (GPIO_DBCTL [4]),            |
+| [n]     |DBEN[n]     |one de-bounce sample cycle period is controlled by DBCLKSEL (GPIO_DBCTL [3:0]).              |
+|n=0,1..15|            |*0* = Px.n de-bounce function Disabled.                                                      |
+|         |            |*1* = Px.n de-bounce function Enabled                                                        |
+|         |            |The de-bounce function is valid only for edge triggered interrupt. If the interrupt mode is  |
+|         |            |level triggered, the de-bounce enable bit is ignored.                                        |  
+
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+***  
 
 
 
