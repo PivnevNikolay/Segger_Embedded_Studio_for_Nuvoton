@@ -266,8 +266,8 @@ Port A-H De-bounce Enable Control Register (Px_DBEN)
 | [n]     |DBEN[n]     |one de-bounce sample cycle period is controlled by DBCLKSEL (GPIO_DBCTL [3:0]).              |
 |n=0,1..15|            |*0* = Px.n de-bounce function Disabled.                                                      |
 |         |            |*1* = Px.n de-bounce function Enabled                                                        |
-|         |            |The de-bounce function is valid only for edge triggered interrupt. If the interrupt mode is  |
-|         |            |level triggered, the de-bounce enable bit is ignored.                                        |  
+|         |            |*The de-bounce function is valid only for edge triggered interrupt. If the interrupt mode is*|
+|         |            |*level triggered, the de-bounce enable bit is ignored.*                                      |  
 
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
@@ -295,8 +295,22 @@ Port A-H Interrupt Type Control (Px_INTTYPE)
 |7     |6     |5     |4     |3     |2      |1    |0     |
 | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | 
 
-
-
-
-
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[31:16]  |Reserved    |Reserved                                                                                     |
+|         |            |**Port A-H Pin[n] Edge or Level Detection Interrupt Trigger Type Control**                   |
+|         |            |TYPE (Px_INTTYPE[n]) bit is used to control the triggered interrupt is by level trigger or   |
+|         |            |by edge trigger. If the interrupt is by edge trigger, the trigger source can be controlled by|
+|         |            |de-bounce. If the interrupt is by level trigger, the input source is sampled by one HCLK     |
+|         |            |clock and generates the interrupt.                                                           |
+| [n]     |TYPE[n]     |*0* = Edge trigger interrupt                                                                 |
+|n=0,1..15|            |*1* =  Level trigger interrupt.                                                              |
+|         |            |If the pin is set as the level trigger interrupt, only one level can be set on the registers |
+|         |            |RHIEN (Px_INTEN[n+16])/FLIEN (Px_INTEN[n]). If both levels to trigger interrupt are set,     |
+|         |            |the setting is ignored and no interrupt will occur.                                          |  
+|         |            |*The de-bounce function is valid only for edge triggered interrupt. If the interrupt mode is*|
+|         |            |*level triggered, the de-bounce enable bit is ignored.*                                      |  
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+***  
 
