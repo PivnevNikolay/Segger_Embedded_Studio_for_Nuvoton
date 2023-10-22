@@ -8,7 +8,7 @@
 * [Pin Value](#Pin-Value)
 * [De-bounce Enable Control Register](#De-bounce-Enable-Control-Register)
 * [Interrupt Type Control](#Interrupt-Type-Control)
-* [Interrupt Enable Control Register](#Interrupt-Enable-Control-RegisterPin-Value)
+* [Interrupt Enable Control Register](#Interrupt-Enable-Control-Register)
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
