@@ -8,6 +8,7 @@
 * [Pin Value](#Pin-Value)
 * [De-bounce Enable Control Register](#De-bounce-Enable-Control-Register)
 * [Interrupt Type Control](#Interrupt-Type-Control)
+* [Interrupt Enable Control Register](#Interrupt-Enable-Control-RegisterPin-Value)
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -304,13 +305,82 @@ Port A-H Interrupt Type Control (Px_INTTYPE)
 |         |            |de-bounce. If the interrupt is by level trigger, the input source is sampled by one HCLK     |
 |         |            |clock and generates the interrupt.                                                           |
 | [n]     |TYPE[n]     |*0* = Edge trigger interrupt                                                                 |
-|n=0,1..15|            |*1* =  Level trigger interrupt.                                                              |
+|n=0,1..15|            |*1* = Level trigger interrupt.                                                              |
 |         |            |If the pin is set as the level trigger interrupt, only one level can be set on the registers |
 |         |            |RHIEN (Px_INTEN[n+16])/FLIEN (Px_INTEN[n]). If both levels to trigger interrupt are set,     |
 |         |            |the setting is ignored and no interrupt will occur.                                          |  
 |         |            |*The de-bounce function is valid only for edge triggered interrupt. If the interrupt mode is*|
 |         |            |*level triggered, the de-bounce enable bit is ignored.*                                      |  
+
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
 ***  
+### Interrupt Enable Control Register 
+Port A-H Interrupt Enable Control Register (Px_INTEN)
+|Register | Offset       |R/W |Description                          |Reset Value|
+|:--------:|:-----------:|:-:|:-------------------------------------|:---------:|
+|PA_INTEN| GPIO_BA+0x01C |R/W| PA Interrupt Enable Control Register |0x0000_0000|
+|PB_INTEN| GPIO_BA+0x05C |R/W| PB Interrupt Enable Control Register |0x0000_0000|
+|PC_INTEN| GPIO_BA+0x09C |R/W| PC Interrupt Enable Control Register |0x0000_0000|
+|PD_INTEN| GPIO_BA+0x0DC |R/W| PD Interrupt Enable Control Register |0x0000_0000|
+|PE_INTEN| GPIO_BA+0x11C |R/W| PE Interrupt Enable Control Register |0x0000_0000|
+|PF_INTEN| GPIO_BA+0x15C |R/W| PF Interrupt Enable Control Register |0x0000_0000|
+|PG_INTEN| GPIO_BA+0x19C |R/W| PG Interrupt Enable Control Register |0x0000_0000|
+|PH_INTEN| GPIO_BA+0x1DC |R/W| PH Interrupt Enable Control Register |0x0000_0000|  
+
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN| RHIEN|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN|
+|7     |6     |5     |4     |3     |2      |1    |0     |
+| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN| FLIEN|  
+
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[n+16]   |RHIEN[n]    |*Port A-H Pin[n] Rising Edge or High Level Interrupt Trigger Type Enable Bit*                |
+|n=0,1..15|            | The RHIEN (Px_INTEN[n+16]) bit is used to enable the interrupt for each of the              |
+|         |            | corresponding input Px.n pin. Set bit to 1 also enable the pin wake-up function.            |
+|         |            | When setting the RHIEN (Px_INTEN[n+16]) bit to 1 :                                          |
+|         |            | If the interrupt is level trigger (TYPE (Px_INTTYPE[n]) bit is set to 1), the input Px.n pin|
+|         |            |will generate the interrupt while this pin state is at high level                            |
+|         |            |If the interrupt is edge trigger (TYPE (Px_INTTYPE[n]) bit is set to 0), the input Px.n pin  |
+|         |            |will generate the interrupt while this pin state changed from low to high.                   |
+|         |            |*0* = Px.n level high or low to high interrupt Disabled.                                     |
+|         |            |*1* = Px.n level high or low to high interrupt Enabled.                                      |  
+
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*   
+
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[n]      |FLIEN[n]    |*Port A-H Pin[n] Falling Edge or Low Level Interrupt Trigger Type Enable Bit*                |
+|n=0,1..15|            | The FLIEN (Px_INTEN[n]) bit is used to enable the interrupt for each of the                 |
+|         |            |                                                                                             |  
+|         |            |                                                                                             | 
+|         |            |                                                                                             | 
+|         |            |                                                                                             | 
+|         |            |                                                                                             | 
+|         |            |                                                                                             | 
+|         |            |                                                                                             |  
+
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
