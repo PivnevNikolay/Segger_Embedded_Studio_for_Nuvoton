@@ -7,6 +7,7 @@
 * [Data Output Write Mask](#Data-Output-Write-Mask)
 * [Pin Value](#Pin-Value)
 * [De-bounce Enable Control Register](#De-bounce-Enable-Control-Register)
+* [Interrupt Type Control](#Interrupt-Type-Control)
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -271,6 +272,31 @@ Port A-H De-bounce Enable Control Register (Px_DBEN)
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
 ***  
+### Interrupt Type Control  
+Port A-H Interrupt Type Control (Px_INTTYPE) 
+|Register | Offset       |R/W |Description                          |Reset Value|
+|:--------:|:-----------:|:-:|:-------------------------------------|:---------:|
+|PA_INTTYPE|GPIO_BA+0x018|R/W| PA Interrupt Trigger Type Control    |0x0000_0000|
+|PB_INTTYPE|GPIO_BA+0x058|R/W| PB Interrupt Trigger Type Control    |0x0000_0000|
+|PC_INTTYPE|GPIO_BA+0x098|R/W| PC Interrupt Trigger Type Control    |0x0000_0000|
+|PD_INTTYPE|GPIO_BA+0x0D8|R/W| PD Interrupt Trigger Type Control    |0x0000_0000|
+|PE_INTTYPE|GPIO_BA+0x118|R/W| PE Interrupt Trigger Type Control    |0x0000_0000|
+|PF_INTTYPE|GPIO_BA+0x158|R/W| PF Interrupt Trigger Type Control    |0x0000_0000|
+|PG_INTTYPE|GPIO_BA+0x198|R/W| PG Interrupt Trigger Type Control    |0x0000_0000|
+|PH_INTTYPE|GPIO_BA+0x1D8|R/W| PH Interrupt Trigger Type Control    |0x0000_0000|  
+
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+| TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE |
+|7     |6     |5     |4     |3     |2      |1    |0     |
+| TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | TYPE | 
+
+
+
 
 
 
