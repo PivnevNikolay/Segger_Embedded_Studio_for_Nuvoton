@@ -9,6 +9,7 @@
 * [De-bounce Enable Control Register](#De-bounce-Enable-Control-Register)
 * [Interrupt Type Control](#Interrupt-Type-Control)
 * [Interrupt Enable Control Register](#Interrupt-Enable-Control-Register)
+* [Interrupt Source Flag](#Interrupt-Source-Flag)
 ### Обзор   
 Чип серии M031(М032) может имееть до 111 контактов ввода-вывода общего назначения, которые могут использоваться совместно
 с другими функциональными контактами в зависимости от конфигурации чипа. Эти 111 контактов расположены в 5 портах, названных
@@ -381,19 +382,32 @@ Port A-H Interrupt Source Flag (Px_INTSRC)
 |PE_INTSRC|GPIO_BA+0x120|R/W|PE Interrupt Source Flag|0x0000_XXXX|
 |PF_INTSRC|GPIO_BA+0x160|R/W|PF Interrupt Source Flag|0x0000_XXXX|
 |PG_INTSRC|GPIO_BA+0x1A0|R/W|PG Interrupt Source Flag|0x0000_XXXX|
-|PH_INTSRC|GPIO_BA+0x1E0|R/W|PH Interrupt Source Flag|0x0000_XXXX|
+|PH_INTSRC|GPIO_BA+0x1E0|R/W|PH Interrupt Source Flag|0x0000_XXXX|  
 
+|  31  | 30   |  29  |  28  |  27  |  26  |  25  |  24  |
+|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|23    |22    |21    |20    |19    |18    |17    |16    |
+|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|Reserved|
+|15    |14    |13    |12    |11    |10    |9     |8     |
+|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC| 
+|7     |6     |5     |4     |3     |2      |1    |0     |
+|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|INTSRC|  
 
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[31:16]  | Reserved   |Reserved.                                                                                    |  
 
-
-
-
-
-
-
-
-
-
-
-
-
+|Bits     |Description |Description|
+|:-------:|:----------:|:--------------------------------------------------------------------------------------------|
+|[n]      |INTSRC[n]   |**Port A-H Pin[n] Interrupt Source Flag**                                                    |
+|n=0,1..15|            | Write Operation :                                                                           |
+|         |            | *0* = No action.                                                                            |  
+|         |            | *1* = Clear the corresponding pending interrupt.                                            | 
+|         |            | Read Operation :                                                                            |
+|         |            | *0* = No interrupt at Px.n.                                                                 |
+|         |            | *1* = Px.n generates an interrupt.                                                          |  
+  
+**Note1:**   
+*The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
+*** 
