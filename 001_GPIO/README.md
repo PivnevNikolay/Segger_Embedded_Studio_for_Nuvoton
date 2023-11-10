@@ -358,17 +358,30 @@ Port A-H Interrupt Enable Control Register (Px_INTEN)
 |:-------:|:----------:|:--------------------------------------------------------------------------------------------|
 |[n]      |FLIEN[n]    |*Port A-H Pin[n] Falling Edge or Low Level Interrupt Trigger Type Enable Bit*                |
 |n=0,1..15|            | The FLIEN (Px_INTEN[n]) bit is used to enable the interrupt for each of the                 |
-|         |            |                                                                                             |  
-|         |            |                                                                                             | 
-|         |            |                                                                                             | 
-|         |            |                                                                                             | 
-|         |            |                                                                                             | 
-|         |            |                                                                                             | 
-|         |            |                                                                                             |  
+|         |            | corresponding input Px.n pin. Set bit to 1 also enable the pin wake-up function.            |  
+|         |            | When setting the FLIEN (Px_INTEN[n]) bit to 1 :                                             | 
+|         |            | If the interrupt is level trigger (TYPE (Px_INTTYPE[n]) bit is set to 1), the input Px.n pin| 
+|         |            | will generate the interrupt while this pin state is at low level.                           | 
+|         |            | If the interrupt is edge trigger(TYPE (Px_INTTYPE[n]) bit is set to 0), the input Px.n pin  | 
+|         |            | will generate the interrupt while this pin state changed from high to low.                  | 
+|         |            | *0* = Px.n level low or high to low interrupt Disabled.                                     | 
+|         |            | *1* = Px.n level low or high to low interrupt Enabled.                                      |  
 
 **Note1:**   
 *The PC.15/PF.12-13/PG.0-1,5-8/PH.0-3,12-15 pin is ignored.*  
-
+***  
+### Interrupt Source Flag   
+Port A-H Interrupt Source Flag (Px_INTSRC)
+|Register | Offset      |R/W|Description             |Reset Value|
+|:-------:|:-----------:|:-:|:-----------------------|:---------:|
+|PA_INTSRC|GPIO_BA+0x020|R/W|PA Interrupt Source Flag|0x0000_XXXX|
+|PB_INTSRC|GPIO_BA+0x060|R/W|PB Interrupt Source Flag|0x0000_XXXX|
+|PC_INTSRC|GPIO_BA+0x0A0|R/W|PC Interrupt Source Flag|0x0000_XXXX|
+|PD_INTSRC|GPIO_BA+0x0E0|R/W|PD Interrupt Source Flag|0x0000_XXXX|
+|PE_INTSRC|GPIO_BA+0x120|R/W|PE Interrupt Source Flag|0x0000_XXXX|
+|PF_INTSRC|GPIO_BA+0x160|R/W|PF Interrupt Source Flag|0x0000_XXXX|
+|PG_INTSRC|GPIO_BA+0x1A0|R/W|PG Interrupt Source Flag|0x0000_XXXX|
+|PH_INTSRC|GPIO_BA+0x1E0|R/W|PH Interrupt Source Flag|0x0000_XXXX|
 
 
 
