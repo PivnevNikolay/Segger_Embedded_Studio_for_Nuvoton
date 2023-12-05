@@ -28,7 +28,10 @@
  * NuTool-ClockConfigure (Web application) --> https://opennuvoton.github.io/NuTool-ClockConfigure/
   **************************************************************************************************
  *\brief
- */
+ */ 
+//******************************  Пример первый **************************
+//******************************  StdDriver  *****************************
+
 #include "NuMicro.h"
 #include <stdio.h>
 
@@ -83,6 +86,65 @@ void SYS_Init(void) {
 
 int main(void) {
 	
+  SYS_Init();
+
+  while (1) {
+  }
+}
+
+//******************************  Пример второй **************************
+//******************************  RegBased  ******************************
+#include "NuMicro.h"
+#include <stdio.h>
+
+void SYS_Init(void) {
+  // MCU:M031EC1AE(TSSOP28)
+  // Base Clocks:
+  // LIRC:38.4kHz
+  // HCLK:38.4kHz
+  // PCLK0:38.4kHz
+  // PCLK1:38.4kHz
+  // Enabled-Module Frequencies:
+  // Clock(LIRC): Clock:38.4kHz  LIRC: 38.4kHz
+
+  SYS_UnlockReg();
+  /* Enable clock source */
+  // --> CLK_EnableXtalRC(CLK_PWRCTL_LIRCEN_Msk);
+  CLK->PWRCTL |= CLK_PWRCTL_LIRCEN_Msk;
+
+  /* Waiting for clock source ready */
+  // --> CLK_WaitClockReady(CLK_STATUS_LIRCSTB_Msk);
+  while((CLK->STATUS & CLK_STATUS_LIRCSTB_Msk) != CLK_STATUS_LIRCSTB_Msk);
+
+  /* Set HCLK clock */
+  // --> CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_LIRC, CLK_CLKDIV0_HCLK(1));
+  /* Switch HCLK to new HCLK source */
+  CLK->CLKSEL0 = (CLK->CLKSEL0 & (~CLK_CLKSEL0_HCLKSEL_Msk)) | CLK_CLKSEL0_HCLKSEL_LIRC;
+  /* Apply new Divider */
+  CLK->CLKDIV0 = (CLK->CLKDIV0 & (~CLK_CLKDIV0_HCLKDIV_Msk)) | CLK_CLKDIV0_HCLK(1);
+
+  /* Set PCLK-related clock */
+  CLK->PCLKDIV = (CLK_PCLKDIV_APB0DIV_DIV1 | CLK_PCLKDIV_APB1DIV_DIV1);
+
+  // --> CLK_EnableCKO(CLK_CLKSEL1_CLKOSEL_LIRC, MODULE_NoMsk, 1);
+  /* CKO = clock source / 2^(u32ClkDiv + 1) */
+  CLK->CLKOCTL = CLK_CLKOCTL_CLKOEN_Msk | MODULE_NoMsk | (1 << CLK_CLKOCTL_DIV1EN_Pos);// MODULE_NoMsk =0x00
+  /* Enable CKO clock source */
+  CLK->APBCLK0 |= CLK_APBCLK0_CLKOCKEN_Msk;
+  /* Select CKO clock source */
+  CLK->CLKSEL1 = (CLK->CLKSEL1 & (~CLK_CLKSEL1_CLKOSEL_Msk)) | (CLK_CLKSEL1_CLKOSEL_LIRC);
+
+  //********* Init I/O (CLKO) Multi-function **********************//
+  /* Set PA multi-function pins for CLKO(PA.3) */
+  SYS->GPA_MFPL &= ~(SYS_GPA_MFPL_PA3MFP_Msk);
+  SYS->GPA_MFPL |= (SYS_GPA_MFPL_PA3MFP_CLKO);
+
+  SystemCoreClockUpdate();
+
+  SYS_LockReg();
+}
+
+int main(void) {
   SYS_Init();
 
   while (1) {
