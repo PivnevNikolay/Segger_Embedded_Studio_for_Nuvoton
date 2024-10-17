@@ -1,10 +1,8 @@
-/**-------------------------------------------------------------------
- *\date  13.06.2023
- *\brief
+ /**-------------------------------------------------------------------
+ \date  10.06.2023
  *
  ***********************************************************************************************
- * В данном примере подключим, инициализируем дисплей и выведем на дисплей значения 
- * в виде счётчика от -1555 до 3000.
+ * В данном примере подключим, инициализируем дисплей и выведем три уровня заряда батареи на LCD.
  ***********************************************************************************************
  *
  *     M031EC1AE          HT1624
@@ -23,24 +21,17 @@
  * Код взят и адаптирован для M031EC1AE (Nuvoton) отсюда.
  * https://count-zero.ru/2022/ht1621/
  * LCD Arduino library https://github.com/valerionew/ht1621-7-seg
- *
- *
- * HT1621 – это LCD драйвер, способный управлять 128 элементным (32х4) индикатором.
- * Возможность конфигурирования делает HT1620 пригодным для использования во множестве LCD устройств, включая LCD модули и системы дисплеев.
- * Микросхема при формировании напряжения смещения для питания LCD потребляет совсем небольшой ток.
+ * Видео про HT1621
+ * https://www.youtube.com/watch?v=O1xRavRY38Y
  *
  * ** Код написан в IDE SEGGER Embedded Studio for ARM **
  **********************************************************************
- *\ author PivnevNikolay
- *\ сode debugging ScuratovaAnna
- *\brief
+ * \\ author PivnevNikolay 
+ * \\ сode debugging ScuratovaAnna
  */
 #include "NuMicro.h"
-#include <math.h>
-#include <stdbool.h>
+#include "stdbool.h"
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define WR   1
 #define CS   0
@@ -66,23 +57,16 @@ int _buffer[7] = {
     0x00,
     0x00,
 };
-int x = -1555;
-
 //********************************************************************
-void wrDATA(unsigned char data, unsigned char len);
-void wrCMD(unsigned char CMD);
+void wrDATA(uint8_t data, uint8_t len);
+void wrCMD(uint8_t CMD);
 void config(void);
 void clear(void);
-void wrCLR(unsigned char len);
-void wrclrdata(unsigned char addr, unsigned char sdata);
+void wrCLR(uint8_t len);
+void wrclrdata(uint8_t addr, uint8_t sdata);
 void update(void);
-void wrone(char addr, char sdata);
+void wrone(uint8_t addr, uint8_t sdata);
 void setBatteryLevel(int level);
-char charToSegBits(char character);
-void setdecimalseparator(int decimaldigits);
-void print_str(const char *str, bool leftPadded);
-void setdecimalseparator(int decimaldigits);
-void print_Int(int num);
 
 //********************************************************************
 void SYS_Init(void) {
@@ -90,7 +74,7 @@ void SYS_Init(void) {
   //********* Enable HIRC clock (Internal RC 48MHz)  **************//
   CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
   CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
-  CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(11)); // The clock of HCLK --> 4MHz
+  CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(11));//The clock of HCLK --> 4MHz
   // CLK->PCLKDIV = (CLK_PCLKDIV_APB0DIV_DIV4 | CLK_PCLKDIV_APB1DIV_DIV4);
   //********* UART0_MODULE  ***************************************//
   CLK_EnableModuleClock(UART0_MODULE);
@@ -122,17 +106,19 @@ int main(void) {
   TIMER_Delay(TIMER0, 10);
   lcd_begin();
   clear();
-//********************************************************************
   while (1) {
-    print_Int(x++);
-    TIMER_Delay(TIMER0, 5000);
-    if (x > 3000) {
-      x = -1100;
-    }
+    setBatteryLevel(1);
+    TIMER_Delay(TIMER0, 1000000);
+    setBatteryLevel(2);
+    TIMER_Delay(TIMER0, 1000000);
+    setBatteryLevel(3);
+    TIMER_Delay(TIMER0, 1000000);
+    setBatteryLevel(0);
+    TIMER_Delay(TIMER0, 1000000);
   }
 }
 //********************************************************************
-void wrDATA(unsigned char data, unsigned char len) {
+void wrDATA(uint8_t data, uint8_t len) {
   for (uint8_t i = 0; i < len; i++) {
     PA->DOUT &= ~(1 << WR);
     PA->DOUT = (data & 0x80) ? PA->DOUT | (1 << DATA) : PA->DOUT & ~(1 << DATA);
@@ -142,7 +128,7 @@ void wrDATA(unsigned char data, unsigned char len) {
   }
 }
 
-void wrCMD(unsigned char CMD) {
+void wrCMD(uint8_t CMD) {
   PA->DOUT &= ~(1 << CS);
   wrDATA(0x80, 4);
   wrDATA(CMD, 8);
@@ -162,7 +148,7 @@ void clear(void) {
   wrCLR(16);
 }
 
-void wrCLR(unsigned char len) {
+void wrCLR(uint8_t len) {
   uint8_t addr = 0;
   uint8_t i;
   for (i = 0; i < len; i++) {
@@ -171,7 +157,7 @@ void wrCLR(unsigned char len) {
   }
 }
 
-void wrclrdata(unsigned char addr, unsigned char sdata) {
+void wrclrdata(uint8_t addr, uint8_t sdata) {
   addr <<= 2;
   PA->DOUT &= ~(1 << CS);
   wrDATA(0xa0, 3);
@@ -189,7 +175,7 @@ void update(void) {
   wrone(10, _buffer[0]);
 }
 
-void wrone(char addr, char sdata) {
+void wrone(uint8_t addr, uint8_t sdata) {
   addr <<= 2;
   PA->DOUT &= ~(1 << CS);
   wrDATA(0xa0, 3);
@@ -205,99 +191,15 @@ void setBatteryLevel(int level) {
   _buffer[2] &= 0x7F;
 
   switch (level) {
-  case 3: // индикатор заряда батареи включен горят все 3 сегмента
+  case 3: //индикатор заряда батареи включен горят все 3 сегмента
     _buffer[0] |= 0x80;
-  case 2: // индикатор заряда батареи включен  горит 2 сегмента
+  case 2: //индикатор заряда батареи включен  горит 2 сегмента
     _buffer[1] |= 0x80;
-  case 1: // индикатор заряда батареи включен  горит 1 сегмент
+  case 1: //индикатор заряда батареи включен  горит 1 сегмент
     _buffer[2] |= 0x80;
-  case 0: // индикатор заряда батареи выключен
+  case 0: //индикатор заряда батареи выключен
   default:
     break;
   }
   update();
-}
-
-void print_str(const char *str, bool leftPadded) {
-  int chars = strlen(str);
-  int padding = 6 - chars;
-
-  for (uint8_t i = 0; i < 6; i++) {
-    _buffer[i] &= 0x80;
-    uint8_t character = leftPadded
-                            ? i < padding ? ' ' : str[i - padding]
-                        : i >= chars ? ' '
-                                     : str[i];
-    _buffer[i] |= charToSegBits(character);
-  }
-  setdecimalseparator(0);
-  update();
-}
-
-void setdecimalseparator(int decimaldigits) {
-  _buffer[3] &= 0x7F;
-  _buffer[4] &= 0x7F;
-  _buffer[5] &= 0x7F;
-
-  if (decimaldigits <= 0 || decimaldigits > 3) {
-    return;
-  }
-  _buffer[6 - decimaldigits] |= 0x80;
-}
-
-void print_Int(int num) {
-  if (num > 32767)
-    num = 32767;
-  if (num < -32767)
-    num = -32767;
-  char localbuffer[7];
-  sprintf(localbuffer, "%d      ", num); // convert the decimal into string !!! 6 пробелов
-  uint8_t precision = 0;
-  if (precision > 0 && (num) < pow(10, precision)) {
-    for (uint8_t i = 0; i < (5 - precision); i++) {
-      if (localbuffer[i + 1] == '0' && localbuffer[i] != '-') {
-        localbuffer[i] = ' ';
-      }
-    }
-  }
-  for (uint8_t i = 0; i < 6; i++) {
-    _buffer[i] &= 0x80;
-    _buffer[i] |= charToSegBits(localbuffer[i]);
-  }
-  update();
-}
-
-char charToSegBits(char character) {
-  switch (character) {
-  case '0':
-    return 0x7D;
-  case '1':
-    return 0x60;
-  case '2':
-    return 0x3E;
-  case '3':
-    return 0x7A;
-  case '4':
-    return 0x63;
-  case '5':
-    return 0x5B;
-  case '6':
-    return 0x5F;
-  case '7':
-    return 0x70;
-  case '8':
-    return 0x7F;
-  case '9':
-    return 0x7B;
-  case ' ':
-    return 0x00;
-  case '*':
-    return 0x33;
-  case '|':
-    return 0x5;
-  case '-':
-    return 0x2;
-  case '_':
-    return 0x8;
-  }
 }
