@@ -1,9 +1,8 @@
  /**-------------------------------------------------------------------
- \date  13.06.2023
+ \date  05.10.2024
  *
  ***********************************************************************************************
- * В данном примере подключим, инициализируем дисплей и выведем на дисплей значения 
- * в виде счётчика от -1555 до 3000.
+ * В данном примере выведем вещественное число с плавающей запятой на экран LCD.
  ***********************************************************************************************
  *
  *     M031EC1AE          HT1624
@@ -37,48 +36,45 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define WR   1
-#define CS   0
+#define CS 0
+#define WR 1
 #define DATA 2
 
-#define BIAS    0x52
-#define SYSDIS  0X00
-#define SYSEN   0X02
-#define LCDOFF  0X04
-#define LCDON   0X06
-#define XTAL    0x28
-#define RC256   0X30
-#define TONEON  0X12
+#define BIAS 0x52
+#define SYSDIS 0X00
+#define SYSEN 0X02
+#define LCDOFF 0X04
+#define LCDON 0X06
+#define XTAL 0x28
+#define RC256 0X30
+#define TONEON 0X12
 #define TONEOFF 0X10
 #define WDTDIS1 0X0A
 
 int _buffer[7] = {
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
-    0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
 };
-int x = -1555;
-
 /************************************************************************/
-void wrDATA(unsigned char data, unsigned char len);
-void wrCMD(unsigned char CMD);
+void wrDATA(uint8_t data, uint8_t len);
+void wrCMD(uint8_t CMD);
 void config(void);
 void clear(void);
-void wrCLR(unsigned char len);
-void wrclrdata(unsigned char addr, unsigned char sdata);
+void wrCLR(uint8_t len);
+void wrclrdata(uint8_t addr, uint8_t sdata);
 void update(void);
-void wrone(char addr, char sdata);
-void setBatteryLevel(int level);
+void wrone(uint8_t addr, uint8_t sdata);
+void setdecimalseparator(int decimaldigits);
 char charToSegBits(char character);
-void setdecimalseparator(int decimaldigits);
-void print_str(const char *str, bool leftPadded);
-void setdecimalseparator(int decimaldigits);
-void print_Int(int num);
-
+void print_long(long num, const char* flags, int precision);
+void print_double(double num, int precision);
+/************************************************************************/
+double num = 0.711;
 /************************************************************************/
 void SYS_Init(void) {
   SYS_UnlockReg();
@@ -119,11 +115,10 @@ int main(void) {
   clear();
 /************************************************************************/
   while (1) {
-    print_Int(x++);
+    print_double(num, 3);
     TIMER_Delay(TIMER0, 5000);
-    if (x > 3000) {
-      x = -1100;
-    }
+    num  += 0.001;
+    if(num >= 3)num = -2.711;
   }
 }
 /************************************************************************/
@@ -157,7 +152,7 @@ void clear(void) {
   wrCLR(16);
 }
 /************************************************************************/
-void wrCLR(unsigned char len) {
+void wrCLR(uint8_t len) {
   uint8_t addr = 0;
   uint8_t i;
   for (i = 0; i < len; i++) {
@@ -193,42 +188,6 @@ void wrone(char addr, char sdata) {
   PA->DOUT |= (1 << CS);
 }
 /************************************************************************/
-void setBatteryLevel(int level) {
-
-  _buffer[0] &= 0x7F;
-  _buffer[1] &= 0x7F;
-  _buffer[2] &= 0x7F;
-
-  switch (level) {
-  case 3: // индикатор заряда батареи включен горят все 3 сегмента
-    _buffer[0] |= 0x80;
-  case 2: // индикатор заряда батареи включен  горит 2 сегмента
-    _buffer[1] |= 0x80;
-  case 1: // индикатор заряда батареи включен  горит 1 сегмент
-    _buffer[2] |= 0x80;
-  case 0: // индикатор заряда батареи выключен
-  default:
-    break;
-  }
-  update();
-}
-/************************************************************************/
-void print_str(const char *str, bool leftPadded) {
-  int chars = strlen(str);
-  int padding = 6 - chars;
-
-  for (uint8_t i = 0; i < 6; i++) {
-    _buffer[i] &= 0x80;
-    uint8_t character = leftPadded
-                            ? i < padding ? ' ' : str[i - padding]
-                        : i >= chars ? ' '
-                                     : str[i];
-    _buffer[i] |= charToSegBits(character);
-  }
-  setdecimalseparator(0);
-  update();
-}
-/************************************************************************/
 void setdecimalseparator(int decimaldigits) {
   _buffer[3] &= 0x7F;
   _buffer[4] &= 0x7F;
@@ -240,60 +199,80 @@ void setdecimalseparator(int decimaldigits) {
   _buffer[6 - decimaldigits] |= 0x80;
 }
 /************************************************************************/
-void print_Int(int num) {
-  if (num > 32767)
-    num = 32767;
-  if (num < -32767)
-    num = -32767;
+char charToSegBits(char character) {
+  switch (character) {
+    case '0':
+      return 0x7D;
+    case '1':
+      return 0x60;
+    case '2':
+      return 0x3E;
+    case '3':
+      return 0x7A;
+    case '4':
+      return 0x63;
+    case '5':
+      return 0x5B;
+    case '6':
+      return 0x5F;
+    case '7':
+      return 0x70;
+    case '8':
+      return 0x7F;
+    case '9':
+      return 0x7B;
+    case ' ':
+      return 0x00;
+    case '*':
+      return 0x33;
+    case '|':
+      return 0x5;
+    case '-':
+      return 0x2;
+    case '_':
+      return 0x8;
+  }
+}
+/************************************************************************/
+void print_long(long num, const char* flags, int precision) {
+  if (num > 999999)
+    num = 999999;
+  if (num < -99999)
+    num = -99999;
   char localbuffer[7];
-  sprintf(localbuffer, "%d      ", num); // convert the decimal into string !!! 6 пробелов
-  uint8_t precision = 0;
+  snprintf(localbuffer, 7, flags, num);
   if (precision > 0 && (num) < pow(10, precision)) {
-    for (uint8_t i = 0; i < (5 - precision); i++) {
+    for (int i = 0; i < (5 - precision); i++) {
       if (localbuffer[i + 1] == '0' && localbuffer[i] != '-') {
         localbuffer[i] = ' ';
+      } else {
+        break;
       }
     }
   }
-  for (uint8_t i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
     _buffer[i] &= 0x80;
     _buffer[i] |= charToSegBits(localbuffer[i]);
   }
   update();
 }
 /************************************************************************/
-char charToSegBits(char character) {
-  switch (character) {
-  case '0':
-    return 0x7D;
-  case '1':
-    return 0x60;
-  case '2':
-    return 0x3E;
-  case '3':
-    return 0x7A;
-  case '4':
-    return 0x63;
-  case '5':
-    return 0x5B;
-  case '6':
-    return 0x5F;
-  case '7':
-    return 0x70;
-  case '8':
-    return 0x7F;
-  case '9':
-    return 0x7B;
-  case ' ':
-    return 0x00;
-  case '*':
-    return 0x33;
-  case '|':
-    return 0x5;
-  case '-':
-    return 0x2;
-  case '_':
-    return 0x8;
-  }
+void print_double(double num, int precision) {
+  if (num > 999999)
+    num = 999999;
+  if (num < -99999)
+    num = -99999;
+  if (precision > 3 && num > 0)
+    precision = 3;
+  else if (precision > 2 && num < 0)
+    precision = 3;//!?
+  if (precision < 0)
+    precision = 0;
+  const char* flags = (precision > 0 && abs(num) < 1) ? "%06li" : "%6li";
+  long integerpart;
+  integerpart = ((long)(num * pow(10, precision)));
+  print_long(integerpart, flags, precision);
+  setdecimalseparator(precision);
+  update();
 }
 /************************************************************************/
