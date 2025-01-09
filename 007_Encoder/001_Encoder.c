@@ -19,14 +19,13 @@
  *  https://alexgyver.ru/encoder/  весь код для примеров взят отсюда 
  *  Для тестирования и отладки использован "круглый энкодер" с RC цепями для аппаратного подавления дребезга контактов.
  *
- *\authors ScuratovaAnna, PivnevNikolay
- *\ сode debugging PivnevNikolay
+ *\сode debugging ScuratovaAnna, PivnevNikolay
  *
  *************************************************************************/
 // ----------------------------   ПРИМЕР 1   ----------------------------//
 // ---------------- Высокоточная обработка энкодера ---------------------//
 // алгоритм с "таблицей", позволяющий увеличить точность энкодера в 4 раза
- #include <NuMicro.h>
+#include <NuMicro.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -49,7 +48,7 @@ void SYS_Init(void) {
   CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
   CLK->PCLKDIV = (CLK_PCLKDIV_APB0DIV_DIV1 | CLK_PCLKDIV_APB1DIV_DIV1);
   SystemCoreClockUpdate();
-  //-------- GPIO PC.1 PC.2 PC.3 ----------------------------
+  //-------- GPIO PA.12 PC.2 PC.14 --------------------------
   SYS->GPA_MFPH = (SYS->GPA_MFPH & ~(SYS_GPA_MFPH_PA12MFP_Msk)) | (SYS_GPA_MFPH_PA12MFP_GPIO);    // PA.12
   SYS->GPC_MFPH = (SYS->GPC_MFPH & ~(SYS_GPC_MFPH_PC14MFP_Msk)) | (SYS_GPC_MFPH_PC14MFP_GPIO);    // PC.14
 
@@ -86,8 +85,7 @@ int main(void) {
 /*
  | ** Bерсия драйверов V7.92 [2023-08-11]                              ** |
  | ** Код написан в IDE SEGGER Embedded Studio for ARM V7.32a (64-bit) ** |
- *    
- *     M031LE3AE         
+ *             
  *     M031LE3AE        encoder   
  *   ------------ 
  *  |            |
@@ -164,11 +162,11 @@ void SYS_Init(void) {
   CLK_EnableModuleClock(ISP_MODULE);
   CLK_EnableSysTick(CLK_CLKSEL0_STCLKSEL_HIRC_DIV2, 0);
   SystemCoreClockUpdate();
-  //********* GPIO PC.1 PC.2 PC.3 ****************************
+  //-------- GPIO PA.12 PC.2 PC.14 --------------------------
   SYS->GPA_MFPH = (SYS->GPA_MFPH & ~(SYS_GPA_MFPH_PA12MFP_Msk)) | (SYS_GPA_MFPH_PA12MFP_GPIO);    // PA.12
   SYS->GPC_MFPH = (SYS->GPC_MFPH & ~(SYS_GPC_MFPH_PC14MFP_Msk)) | (SYS_GPC_MFPH_PC14MFP_GPIO);    // PC.14
 
-  //********* UART0 RXD=PA.15 and TXD=PA.14 ******************
+  //-------- UART0 RXD=PA.15 and TXD=PA.14 ------------------
   SYS->GPA_MFPH = (SYS->GPA_MFPH & ~(SYS_GPA_MFPH_PA14MFP_Msk | SYS_GPA_MFPH_PA15MFP_Msk)) |
       (SYS_GPA_MFPH_PA15MFP_UART0_RXD | SYS_GPA_MFPH_PA14MFP_UART0_TXD);
 
@@ -212,5 +210,119 @@ void delay(u32 ms) {
 
 u32 getCurrentMillis(void) {
   return Nuvoton_ticks;
+}
+// ********************************************************************** /
+// ----------------------------   ПРИМЕР 3   ----------------------------//
+/*
+ | ** Bерсия драйверов V7.92 [2023-08-11]                              ** |
+ | ** Код написан в IDE SEGGER Embedded Studio for ARM V7.32a (64-bit) ** |
+ *             
+ *     M031LE3AE        encoder   
+ *   ------------ 
+ *  |            |
+ *  |            |
+ *  |       PA.12| <---  _|¯|_ (S1)
+ *  |            |
+ *  |       PC.14| <---  _|¯|_ (S2)
+ *  |            |
+ *  |      +3.3V | --->   +5V
+ *  |        GND | --->   GND 
+ *
+ * ------------------- Используем два прерывания  -----------------------
+ * https://alexgyver.ru/encoder/  весь код для примеров взят отсюда !!!*/
+#include <NuMicro.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t u8;
+
+volatile int encCounter = 0;
+volatile bool flag      = 0;
+volatile bool resetFlag;
+volatile bool state0 = 0;
+volatile bool state1 = 0;
+volatile u8 prevState;
+
+void encTick(void);
+
+void GPABGH_IRQHandler(void) {
+  if (GPIO_GET_INT_FLAG(PA, BIT12)) {
+    encTick();
+    GPIO_CLR_INT_FLAG(PA, BIT12);
+  } else {
+    volatile u32 temp;
+    temp       = PA->INTSRC;
+    PA->INTSRC = temp;
+    printf("Un-expected interrupts.\n");
+  }
+}
+
+void GPCDEF_IRQHandler(void) {
+  if (GPIO_GET_INT_FLAG(PC, BIT14)) {
+    encTick();
+    GPIO_CLR_INT_FLAG(PC, BIT14);
+  } else {
+    volatile u32 temp;
+    temp       = PC->INTSRC;
+    PC->INTSRC = temp;
+    printf("Un-expected interrupts.\n");
+  }
+}
+
+void SYS_Init(void) {
+  SYS_UnlockReg();
+  CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
+  CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
+  CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
+  CLK->PCLKDIV = (CLK_PCLKDIV_APB0DIV_DIV1 | CLK_PCLKDIV_APB1DIV_DIV1);
+  SystemCoreClockUpdate();
+  //-------- GPIO PA.12 PC.2 PC.14 --------------------------
+  SYS->GPA_MFPH = (SYS->GPA_MFPH & ~(SYS_GPA_MFPH_PA12MFP_Msk)) | (SYS_GPA_MFPH_PA12MFP_GPIO);    // PA.12
+  SYS->GPC_MFPH = (SYS->GPC_MFPH & ~(SYS_GPC_MFPH_PC14MFP_Msk)) | (SYS_GPC_MFPH_PC14MFP_GPIO);    // PC.14
+
+  //-------- UART0 RXD=PA.15 and TXD=PA.14 ------------------
+  SYS->GPA_MFPH = (SYS->GPA_MFPH & ~(SYS_GPA_MFPH_PA14MFP_Msk | SYS_GPA_MFPH_PA15MFP_Msk)) |
+      (SYS_GPA_MFPH_PA15MFP_UART0_RXD | SYS_GPA_MFPH_PA14MFP_UART0_TXD);
+
+  SYS_LockReg();
+}
+
+void ENC_GPIO_init(void) {
+  GPIO_SetMode(PA, BIT12, GPIO_MODE_INPUT);
+  GPIO_EnableInt(PA, 12, GPIO_INT_BOTH_EDGE);
+  NVIC_EnableIRQ(GPIO_PAPBPGPH_IRQn);
+  GPIO_SetMode(PC, BIT14, GPIO_MODE_INPUT);
+  GPIO_EnableInt(PC, 14, GPIO_INT_BOTH_EDGE);
+  NVIC_EnableIRQ(GPIO_PCPDPEPF_IRQn);
+}
+
+int main(void) {
+  SYS_Init();
+  ENC_GPIO_init();
+  while (1) {
+    if (flag) {
+      printf("Val = %d\n", encCounter);
+      flag = 0;
+    }
+  }
+}
+
+void encTick(void) {
+  state0   = PC14;
+  state1   = PA12;
+  u8 curState = state0 | state1 << 1;
+  if (resetFlag && curState == 0b11) {
+    if (prevState == 0b10)
+      encCounter++;
+    if (prevState == 0b01)
+      encCounter--;
+    resetFlag = 0;
+    flag      = true;
+  }
+  if (curState == 0b00)
+    resetFlag = 1;
+  prevState = curState;
 }
 // ********************************************************************** /
