@@ -1,9 +1,78 @@
+/**-------------------------------------------------------------------
+ \date  02.06.2025
+ *
+ *    M031EC1AE    
+ *   ------------ 
+ *  |            |
+ *  |            |
+ *  |            |
+ *  |        PB.2| ---->  LED
+ *  |            | 
+ *  |       PB.14| ---->  LED
+ *  |            |
+ *  |      +3.3V |
+ *  |        GND |
+ *
+ *\ authors ScuratovaAnna, PivnevNikolay
+ *\ сode debugging PivnevNikolay 
+ */
+//******************************  Пример первый **************************
+#include "NuMicro.h"
+#include "stdbool.h"
+#include <stdio.h>
+
+#define SET_BIT(REG, BIT) ((REG) |= (BIT))
+#define CLEAR_BIT(REG, BIT) ((REG) &= ~(BIT))
+#define READ_BIT(REG, BIT) ((REG) & (BIT))
+#define CLEAR_REG(REG) ((REG) = (0x0))
+#define WRITE_REG(REG, VAL) ((REG) = (VAL))
+#define READ_REG(REG) ((REG))
+#define MODIFY_REG(REG, CLEARMASK, SETMASK) WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
+
+void SYS_Init(void) {
+ SYS_UnlockReg();
+ CLK_EnableXtalRC(CLK_PWRCTL_HIRCEN_Msk);
+ CLK_WaitClockReady(CLK_STATUS_HIRCSTB_Msk);
+ CLK_SetHCLK(CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1));
+
+ CLK_EnableModuleClock(UART0_MODULE);
+ CLK_SetModuleClock(UART0_MODULE, CLK_CLKSEL1_UART0SEL_HIRC, CLK_CLKDIV0_UART0(1));
+
+ CLK_EnableModuleClock(TMR0_MODULE);
+ CLK_SetModuleClock(TMR0_MODULE, CLK_CLKSEL1_TMR0SEL_HIRC, 0);
+
+ SystemCoreClockUpdate();
+ SYS->GPB_MFPL = (SYS->GPB_MFPL & ~(SYS_GPB_MFPL_PB0MFP_Msk))  | (SYS_GPB_MFPL_PB0MFP_GPIO); // PB.2
+ SYS->GPB_MFPH = (SYS->GPB_MFPH & ~(SYS_GPB_MFPH_PB14MFP_Msk ))| (SYS_GPB_MFPH_PB14MFP_GPIO); // PB.14
+ SYS_LockReg();
+}
+
+int main(void) {
+ SYS_Init();
+ // GPIO_SetMode(PA, BIT0, GPIO_MODE_OUTPUT);
+  MODIFY_REG(PB->MODE,GPIO_MODE_MODE0_Msk, GPIO_MODE_OUTPUT << GPIO_MODE_MODE0_Pos);
+  MODIFY_REG(PB->MODE,GPIO_MODE_MODE14_Msk,GPIO_MODE_OUTPUT << GPIO_MODE_MODE14_Pos);
+  SET_BIT(PB->DOUT, GPIO_DOUT_DOUT0_Msk);
+  SET_BIT(PB->DOUT, GPIO_DOUT_DOUT14_Msk);
+  TIMER_Delay(TIMER0, 1000000);
+  while (1) {
+  CLEAR_BIT(PB->DOUT, GPIO_DOUT_DOUT0_Msk);
+  CLEAR_BIT(PB->DOUT, GPIO_DOUT_DOUT14_Msk);
+  TIMER_Delay(TIMER0, 900000);
+  SET_BIT(PB->DOUT, GPIO_DOUT_DOUT0_Msk);
+  SET_BIT(PB->DOUT, GPIO_DOUT_DOUT14_Msk);
+  TIMER_Delay(TIMER0, 900000);
+  }
+} 
+/*************************** End of file ****************************/
+
+
 /**-----------------------------------------------------------------------
  *\date  28.05.2023
  *\brief
  *
  * ** За основу взят примеры Level1_Training.          **
- * ** Первый пример поморгаем светодиодами.            **
+ * **        пример поморгаем светодиодами.            **
  * ** Код написан в IDE SEGGER Embedded Studio for ARM **
  *
  *     M031EC1AE          ARDUINO MULTI-FUNCTION SHIELD
@@ -29,7 +98,7 @@
 //************************************************************************
  *\brief
  */
-//******************************  Пример первый **************************
+//******************************  Пример второй **************************
 //******************************  StdDriver  *****************************
 
 #include "NuMicro.h"
@@ -40,7 +109,7 @@
 #define Bit_RESET 0
 
 volatile bool i = 0;
-//************************************************************************
+
 void SYS_Init(void) {
   SYS_UnlockReg();
   //********* Enable HIRC clock (Internal RC 48MHz)  **************//
@@ -107,7 +176,7 @@ int main(void) {
 
 
 
-//******************************  Пример второй **************************
+//******************************  Пример третий **************************
 //******************************  RegBased  ******************************
 #include "NuMicro.h"
 #include "stdbool.h"
