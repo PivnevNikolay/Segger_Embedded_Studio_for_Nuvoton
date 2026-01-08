@@ -17,6 +17,7 @@
 
 ### Board
 ---
+![alt-текст](https://github.com/PivnevNikolay/Segger_Embedded_Studio_for_Nuvoton/blob/master/Images/M031TD2AE.jpg "M031TD2AE") 
 
 ### Development Environment
 ---
