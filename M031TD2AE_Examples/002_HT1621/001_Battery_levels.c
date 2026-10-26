@@ -203,3 +203,223 @@ void setBatteryLevel(int level) {
   }
   update();
 }
+
+/**-------------------------------------------------------------------
+* @file ht1621 battery levels
+* @brief Поэтапно исправленный и запущенный пример работы с LCD HT1621 на Nuvoton M031.
+*---------------------------------------------------------------------------------------------
+* В данном примере подключим, инициализируем дисплей и выведем три уровня заряда батареи на LCD.
+*---------------------------------------------------------------------------------------------
+*
+*     M031TD2AE           HT1624
+*   ------------         ------------
+*  |            |       |
+*  |            |       |
+*  |        PA.0| ----> | CS
+*  |        PA.1| ----> | WR
+*  |        PA.2| ----> | Data
+*  |            |       |
+*  |      +3.3V | <---> | Vcc
+*  |        GND | <---> | GND
+*
+*
+* @target Nuvoton M031 / Segger Embedded Studio
+* @author PivnevNikolay
+* @сode debugging ScuratovaAnna
+*/
+#include "NuMicro.h"
+#include <stdio.h>
+
+#define SET_BIT(REG, BIT) ((REG) |= (BIT))
+#define CLEAR_BIT(REG, BIT) ((REG) &= ~(BIT))
+#define READ_BIT(REG, BIT) ((REG) & (BIT))
+#define CLEAR_REG(REG) ((REG) = (0x0))
+#define WRITE_REG(REG, VAL) ((REG) = (VAL))
+#define READ_REG(REG) ((REG))
+#define MODIFY_REG(REG, CLEARMASK, SETMASK) WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
+
+#define HT1621_CS PA0
+#define HT1621_WR PA1
+#define HT1621_DATA PA2
+
+#define WR 1
+#define CS 0
+#define DATA 2
+
+#define HT1621_COMMAND_MODE 0x80
+#define HT1621_WRITE_MODE 0xA0
+
+#define BIAS 0x52
+#define SYSDIS 0X00
+#define SYSEN 0X02
+#define LCDOFF 0X04
+#define LCDON 0X06
+#define XTAL 0x28
+#define RC256 0X30
+#define TONEON 0X12
+#define TONEOFF 0X10
+#define WDTDIS1 0X0A
+
+volatile uint32_t g_u32Ticks = 0;
+
+int _buffer[7] = {
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+};
+//--------------------------------------------------------------------
+void wrDATA(uint8_t data, uint8_t len);
+void wrCMD(uint8_t CMD);
+void config(void);
+void clear(void);
+void wrCLR(uint8_t len);
+void wrclrdata(uint8_t addr, uint8_t sdata);
+void update(void);
+void wrone(uint8_t addr, uint8_t sdata);
+void setBatteryLevel(int level);
+//--------------------------------------------------------------------
+void SYS_Init(void) {
+  SYS_UnlockReg();
+  //----------- Enable HIRC clock (Internal RC 48MHz) --------------//
+  SET_BIT(CLK->PWRCTL, CLK_PWRCTL_HIRCEN_Msk);
+  while (!READ_BIT(CLK->STATUS, CLK_STATUS_HIRCSTB_Msk));
+
+  MODIFY_REG(CLK->CLKSEL0, CLK_CLKSEL0_HCLKSEL_Msk, CLK_CLKSEL0_HCLKSEL_HIRC);
+  MODIFY_REG(CLK->CLKDIV0, CLK_CLKDIV0_HCLKDIV_Msk, CLK_CLKDIV0_HCLK(1)); // !
+
+  SystemCoreClockUpdate();
+  //----------- GPIO PA.0 PA.1 PA.2 PA.3 --------------------------//
+  SYS->GPA_MFPL = (SYS->GPA_MFPL & ~(SYS_GPA_MFPL_PA0MFP_Msk)) | (SYS_GPA_MFPL_PA0MFP_GPIO); // PA.0
+  SYS->GPA_MFPL = (SYS->GPA_MFPL & ~(SYS_GPA_MFPL_PA1MFP_Msk)) | (SYS_GPA_MFPL_PA1MFP_GPIO); // PA.1
+  SYS->GPA_MFPL = (SYS->GPA_MFPL & ~(SYS_GPA_MFPL_PA2MFP_Msk)) | (SYS_GPA_MFPL_PA2MFP_GPIO); // PA.2
+  //----------- Инициализация SysTick -----------------------------//
+  WRITE_REG(SysTick->LOAD, (SystemCoreClock / 1000UL) - 1UL);
+  CLEAR_REG(SysTick->VAL);
+  WRITE_REG(SysTick->CTRL, SysTick_CTRL_CLKSOURCE_Msk |
+                               SysTick_CTRL_TICKINT_Msk |
+                               SysTick_CTRL_ENABLE_Msk);
+
+  SYS_LockReg();
+}
+//--------------------------------------------------------------------
+void lcd_begin(void) {
+  MODIFY_REG(PA->MODE,
+      (GPIO_MODE_MODE0_Msk | GPIO_MODE_MODE1_Msk | GPIO_MODE_MODE2_Msk),
+      ((GPIO_MODE_OUTPUT << GPIO_MODE_MODE0_Pos) |
+       (GPIO_MODE_OUTPUT << GPIO_MODE_MODE1_Pos) |
+       (GPIO_MODE_OUTPUT << GPIO_MODE_MODE2_Pos)));
+  config();
+}
+//--------------------------------------------------------------------
+void SysTick_Handler(void) {
+  g_u32Ticks++;
+}
+//--------------------------------------------------------------------
+void delay_ms(uint32_t ms) {
+  uint32_t start = READ_REG(g_u32Ticks);
+  while ((READ_REG(g_u32Ticks) - start) < ms);
+}
+//--------------------------------------------------------------------
+int main(void) {
+  SYS_Init();
+  delay_ms(10);
+  lcd_begin();
+  clear();
+  while (1) {
+    setBatteryLevel(1);
+    delay_ms(1000);
+    setBatteryLevel(2);
+    delay_ms(1000);
+    setBatteryLevel(3);
+    delay_ms(1000);
+    setBatteryLevel(0);
+    delay_ms(1000);
+  }
+}
+//--------------------------------------------------------------------
+void wrDATA(uint8_t data, uint8_t len) {
+  for (uint8_t i = 0; i < len; i++) {
+    HT1621_WR = 0;
+    HT1621_DATA = (data & 0x80) ? 1 : 0;
+    HT1621_WR = 1;
+    data = (data << 1);
+  }
+}
+
+void wrCMD(uint8_t CMD) {
+  HT1621_CS = 0;
+  wrDATA(HT1621_COMMAND_MODE, 4);
+  wrDATA(CMD, 8);
+  HT1621_CS = 1;
+}
+
+void config(void) {
+  wrCMD(BIAS);
+  wrCMD(RC256);
+  wrCMD(SYSDIS);
+  wrCMD(WDTDIS1);
+  wrCMD(SYSEN);
+  wrCMD(LCDON);
+}
+
+void clear(void) {
+  wrCLR(16);
+}
+
+void wrCLR(uint8_t len) {
+  uint8_t addr = 0;
+  uint8_t i;
+  for (i = 0; i < len; i++) {
+    wrclrdata(addr, 0x00);
+    addr = addr + 2;
+  }
+}
+
+void wrclrdata(uint8_t addr, uint8_t sdata) {
+  HT1621_CS = 0;
+  wrDATA(HT1621_WRITE_MODE, 3);
+  wrDATA((uint8_t)(addr << 2), 6);
+  wrDATA(sdata, 8);
+  HT1621_CS = 1;
+}
+
+void update(void) {
+  wrone(0,  _buffer[5]);
+  wrone(2,  _buffer[4]);
+  wrone(4,  _buffer[3]);
+  wrone(6,  _buffer[2]);
+  wrone(8,  _buffer[1]);
+  wrone(10, _buffer[0]);
+}
+
+void wrone(uint8_t addr, uint8_t sdata) {
+  HT1621_CS = 0;
+  wrDATA(HT1621_WRITE_MODE, 3);
+  wrDATA((uint8_t)(addr << 2), 6);
+  wrDATA(sdata, 8);
+  HT1621_CS = 1;
+}
+
+void setBatteryLevel(int level) {
+
+  _buffer[0] &= 0x7F;
+  _buffer[1] &= 0x7F;
+  _buffer[2] &= 0x7F;
+
+  switch (level) {
+  case 3: // индикатор заряда батареи включен горят все 3 сегмента
+    _buffer[0] |= 0x80;
+  case 2: // индикатор заряда батареи включен  горит 2 сегмента
+    _buffer[1] |= 0x80;
+  case 1: // индикатор заряда батареи включен  горит 1 сегмент
+    _buffer[2] |= 0x80;
+  case 0: // индикатор заряда батареи выключен
+  default:
+    break;
+  }
+  update();
+}
