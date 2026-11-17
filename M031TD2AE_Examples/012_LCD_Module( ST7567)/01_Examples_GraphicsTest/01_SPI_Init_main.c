@@ -113,15 +113,14 @@ void SPI0_Init(void) {
               SPI_CTL_SPIEN_Msk);
 
     // SCLK = f_SPI0 / (2 * (DIVIDER + 1)).
-       При источнике SPI0 = 48 MHz и DIVIDER = 11 получаем 2 MHz. */
+    // При источнике SPI0 = 48 MHz и DIVIDER = 11 получаем 2 MHz.
     WRITE_REG(SPI0->CLKDIV, 11UL << SPI_CLKDIV_DIVIDER_Pos);
 }
 
 // Отправка байта по аппаратному SPI с ожиданием окончания
 void SPI_SendByte(uint8_t data) {
   WRITE_REG(SPI0->TX, (uint32_t)data); // Запись данных в буфер TX
-  while (READ_BIT(SPI0->STATUS, SPI_STATUS_BUSY_Msk))
-    ; // Ожидание снятия флага BUSY
+  while (READ_BIT(SPI0->STATUS, SPI_STATUS_BUSY_Msk)); // Ожидание снятия флага BUSY
 }
 
 // Отправка команды (DC = 0)
